@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""PreToolUse hook：src/ 底下沒有 SPEC.md 就不准改（去機密的「spec-gate」概念版）。
+"""PreToolUse hook：src/ 底下沒有 SPEC.md 就不准改（「spec-gate」概念版）。
 
 Claude Code 會把 JSON 送到 stdin（tool_name、tool_input.file_path、cwd）。
 擋下＝stderr 印原因、exit 2；其他情況一律 exit 0，

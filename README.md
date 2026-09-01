@@ -25,6 +25,8 @@ python3 -m unittest -v
 ```
 
 `tests/test_todo.py` 測 CLI 本身，`tests/test_solutions.py` 測 `solutions/` 底下各章的參考解答。
+其中一個測試會拿教材站的原始碼比對（找不到 `../site` 時顯示 `skipped=1`，單獨 clone 這個 repo 時是正常的）；
+另一個會用 `node` 以 stub 執行 workflow 腳本，沒有 `node` 也是跳過。
 
 ## 怎麼重置
 
@@ -34,7 +36,18 @@ python3 -m unittest -v
 git merge --abort 2>/dev/null; git checkout -f main && git reset --hard origin/main && git clean -fd && git worktree prune
 ```
 
-這會丟掉你未 commit 的改動與未追蹤檔案（含你自己貼進 `.claude/` 的檔案），這正是重置的目的。
+它會丟掉：未 commit 的改動、未追蹤的檔案（含你自己貼進 `.claude/` 的 agents／skills／workflows／hooks、練習產出的 `SPEC.md`、`CHANGELOG.md`）。
+
+它**不會**動被 `.gitignore` 忽略的檔案（`git clean -fd` 沒有 `-x`），所以這些會留著：
+
+| 留下的檔案 | 影響 | 想清掉 |
+| --- | --- | --- |
+| `.todo.json` | `python3 src/todo.py list` 會顯示上次的待辦 | `rm -f .todo.json` |
+| `.claude/settings.local.json` | 你核准過的權限規則；留著沒壞處 | 通常不用 |
+| `.claude/worktrees/` | 第 5 章選 keep 留下的 worktree；`git worktree prune` 只清已刪目錄的紀錄 | `git worktree remove .claude/worktrees/<name>` |
+| `__pycache__/` | 無 | 不用 |
+
+`make reset` 是同一行；`make clean-state` 只精確刪 `.todo.json` 與 `__pycache__/`，不碰其他 worktree。
 
 ## 目錄
 
