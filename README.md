@@ -48,7 +48,7 @@ git merge --abort 2>/dev/null; git checkout -f main && git reset --hard origin/m
 ```
 
 它會丟掉：未 commit 的改動、未追蹤的檔案（含你自己貼進 `.claude/` 的 agents／skills／workflows／hooks、練習產出的 `SPEC.md`、`CHANGELOG.md`）。
-期末作業還會留下 tag 與兩個 worktree，重做前多清這些：`git tag -d v1.0.0; for n in feat docs; do git worktree remove --force .claude/worktrees/$n; git branch -D worktree-$n; done`（教材的步驟 0 已含這段）。
+期末作業還會留下 tag 與兩個 worktree，重做前多清這些：`git tag -d v1.0.0; for n in feat docs; do git worktree remove --force .claude/worktrees/$n; git branch -D worktree-$n; done`（教材期末作業的「起點」已含這段）。
 
 它**不會**動被 `.gitignore` 忽略的檔案（`git clean -fd` 沒有 `-x`），所以這些會留著：
 

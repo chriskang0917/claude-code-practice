@@ -290,20 +290,20 @@ def check_workflow(root: Path) -> List[Result]:
     results = [ok("workflow.exists", ".claude/workflows/ship-check.js 存在")]
     src = read_text(path)
     rules = [
-        (re.search(r"(?m)^export const meta = \{", src) is not None, "頂層 export const meta = { … }"),
+        (re.search(r"(?m)^\s*export const meta\s*=\s*\{", src) is not None, "頂層 export const meta = { … }"),
         (re.search(r"name:\s*['\"]ship-check['\"]", src) is not None, "meta.name 是 'ship-check'"),
         (re.search(r"description:\s*['\"][^'\"]+['\"]", src) is not None, "meta.description 非空"),
         (re.search(r"phases:\s*\[", src) is not None and len(re.findall(r"title:", src)) >= 2, "meta.phases 至少兩站"),
         (len(re.findall(r"\bphase\(", src)) >= 2, "至少兩次 phase(...) 呼叫"),
-        ("parallel(" in src and src.count("() => agent(") >= 2, "parallel([...]) 收至少兩個 thunk（() => agent(...)）"),
+        ("parallel(" in src and len(re.findall(r"\(\)\s*=>\s*agent\(", src)) >= 2, "parallel([...]) 收至少兩個 thunk（() => agent(...)）"),
         (src.count("schema:") >= 2, "至少兩個 agent 給 schema"),
         (".filter(Boolean)" in src, "有 .filter(Boolean) 濾掉回 null 的 agent"),
         ("log(" in src, "至少一個 log(...)"),
-        (re.search(r"(?m)^return\b", src) is not None, "頂層 return"),
+        (re.search(r"(?m)^\s*return\b", src) is not None, "頂層 return"),
     ]
     broken = [text for passed, text in rules if not passed]
     if broken:
-        results.append(fail("workflow.static", "腳本缺：" + "；".join(broken), "對照第 3 章「腳本長什麼樣」那張表"))
+        results.append(fail("workflow.static", "腳本缺：" + "；".join(broken), "上面列的就是缺哪一項；寫法對照第 3 章「腳本長什麼樣」與期末「規格 4」"))
     else:
         results.append(ok("workflow.static", "meta／phases／parallel 收 thunk／schema／filter(Boolean)／log／return 都在"))
     if not NODE:

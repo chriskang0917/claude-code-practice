@@ -36,9 +36,11 @@ def read_payload() -> Optional[dict]:
 
 
 def gate(payload: dict) -> int:
+    # 1. 拿到要改的檔
     file_path = (payload.get("tool_input") or {}).get("file_path")
     if not file_path:
         return skip("tool_input 沒有 file_path")
+    # 2. 算出它相對於專案根目錄的路徑
     start = os.environ.get("CLAUDE_PROJECT_DIR") or payload.get("cwd")
     if not start:
         return skip("沒有 CLAUDE_PROJECT_DIR 也沒有 cwd")
@@ -49,6 +51,7 @@ def gate(payload: dict) -> int:
         rel = Path(file_path).resolve().relative_to(root).as_posix()
     except ValueError:
         return skip("檔案不在專案底下：" + str(file_path))
+    # 3. 規則判斷：在 src/ 底下、又沒有 SPEC.md，就擋
     if not rel.startswith("src/"):
         return skip("不在 src/ 底下：" + rel)
     if (root / "SPEC.md").exists():

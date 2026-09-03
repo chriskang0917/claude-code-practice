@@ -31,18 +31,18 @@ claude --worktree b
 等 A、B 都回報「已 commit」再做：
 
 ```bash
-git merge --no-ff worktree-a && git merge --no-ff worktree-b && python3 -m unittest -v
+git merge --no-ff --no-edit worktree-a && git merge --no-ff --no-edit worktree-b && python3 -m unittest -v
 ```
 
-預期：`git log --oneline --graph` 看到兩個 merge 節點；測試 `OK`。
+預期：`git log --oneline --graph` 看到兩個 merge 節點；測試 `OK`。（`--no-edit`＝不開編輯器確認合併訊息；少了它 git 會開 vim，打 `:wq` 可以脫身。）
 
 ## 收尾
 
-1. 回終端機 A、B 各打 `/exit`，提示 keep／remove 時選 **remove**（已 merge 進 main，刪掉安全）。
-2. 主 checkout：
+1. 回終端機 A、B 各打 `/exit`，提示 keep／remove 時選 **remove**（已 merge 進 main，刪掉安全；remove 會連分支一起刪）。沒被問的話自己收：`git worktree remove .claude/worktrees/a && git branch -d worktree-a`（`b` 同理）。
+2. 主 checkout 確認乾淨：
 
 ```bash
-git worktree prune && git branch -d worktree-a worktree-b
+git worktree prune && git worktree list && git branch
 ```
 
 ## 故障排除

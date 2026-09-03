@@ -8,5 +8,6 @@
         ]
       }
     ]
-  }
+  },
+  "worktree": { "baseRef": "head" }
 }
