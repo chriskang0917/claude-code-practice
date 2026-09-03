@@ -1,0 +1,83 @@
+diff --git a/src/todo.py b/src/todo.py
+index e73cf22..49985b5 100644
+--- a/src/todo.py
++++ b/src/todo.py
+@@ -1,5 +1,5 @@
+ #!/usr/bin/env python3
+-"""極簡待辦清單 CLI：add <text> / list / done <n>。
++"""極簡待辦清單 CLI：add <text> / list / done <n> / remove <n>。
+ 
+ 狀態存在 .todo.json（可用環境變數 TODO_FILE 改路徑）。只用標準函式庫，Python 3.9 以上可跑。
+ """
+@@ -9,7 +9,7 @@ import sys
+ from pathlib import Path
+ from typing import Dict, List, Optional
+ 
+-USAGE = "用法：todo.py add <text> | list | done <n>"
++USAGE = "用法：todo.py add <text> | list | done <n> | remove <n>"
+ 
+ 
+ def todo_path() -> Path:
+@@ -63,6 +63,18 @@ def cmd_done(raw_number: str) -> int:
+     return 0
+ 
+ 
++def cmd_remove(raw_number: str) -> int:
++    items = load_items()
++    number = parse_number(raw_number, len(items))
++    if number is None:
++        print("錯誤：編號不存在：{}".format(raw_number), file=sys.stderr)
++        return 1
++    removed = items.pop(number - 1)
++    save_items(items)
++    print("已移除 #{}: {}".format(number, removed["text"]))
++    return 0
++
++
+ def parse_number(raw: str, count: int) -> Optional[int]:
+     try:
+         number = int(raw)
+@@ -85,6 +97,8 @@ def main(argv: Optional[List[str]] = None) -> int:
+         return cmd_list()
+     if command == "done" and len(rest) == 1:
+         return cmd_done(rest[0])
++    if command == "remove" and len(rest) == 1:
++        return cmd_remove(rest[0])
+     print(USAGE, file=sys.stderr)
+     return 1
+ 
+diff --git a/tests/test_todo.py b/tests/test_todo.py
+index 3ca0f4e..97181d5 100644
+--- a/tests/test_todo.py
++++ b/tests/test_todo.py
+@@ -1,4 +1,4 @@
+-"""todo CLI 的 unittest：add / list / done / 空清單 / 錯誤編號。"""
++"""todo CLI 的 unittest：add / list / done / remove / 空清單 / 錯誤編號。"""
+ import io
+ import os
+ import sys
+@@ -62,6 +62,24 @@ class TodoCliTest(unittest.TestCase):
+             self.assertIn("編號不存在", err)
+         self.assertFalse(todo.load_items()[0]["done"])
+ 
++    def test_remove_deletes_item_and_renumbers(self):
++        self.run_cli("add", "第一件")
++        self.run_cli("add", "第二件")
++        code, out, _ = self.run_cli("remove", "1")
++        self.assertEqual(code, 0)
++        self.assertIn("已移除 #1: 第一件", out)
++        self.assertEqual(todo.load_items(), [{"text": "第二件", "done": False}])
++        _, listed, _ = self.run_cli("list")
++        self.assertEqual(listed.splitlines(), ["[ ] 1. 第二件"])
++
++    def test_remove_bad_number_keeps_list(self):
++        self.run_cli("add", "只有一件")
++        for bad in ("0", "2", "abc"):
++            code, _, err = self.run_cli("remove", bad)
++            self.assertEqual(code, 1, bad)
++            self.assertIn("編號不存在", err)
++        self.assertEqual(todo.load_items(), [{"text": "只有一件", "done": False}])
++
+     def test_usage_on_unknown_command(self):
+         code, _, err = self.run_cli("nope")
+         self.assertEqual(code, 1)

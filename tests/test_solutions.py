@@ -3,6 +3,7 @@
 - spec_gate.py 六案例：獨立暫存目錄下跑 subprocess；env 從 os.environ 複製並移除 CLAUDE_PROJECT_DIR（除非案例指定）。
 - review-flow.js：靜態結構檢查，加上用 node 以 stub 的 agent/parallel/phase/log 執行一遍（不呼叫模型；沒有 node 就跳過並說明）。
 - 教材站各章貼給讀者的 heredoc 與 solutions/ 對應檔逐位元組比較（找不到 ../site 時跳過並說明）。
+- 期末作業頁貼給讀者的 heredoc（只有 SPEC.md）與 solutions/capstone/ 逐位元組比較；四份工具檔刻意不貼，由 tests/test_capstone_check.py 驗證。
 """
 import json
 import os
@@ -199,10 +200,10 @@ class ReviewFlowTest(unittest.TestCase):
 HEREDOC_OPEN = re.compile(r"^(\s*)cat > (\S+) <<'EOF'\s*$")
 
 
-def site_heredocs() -> dict:
-    """抓各章 mdx 裡 `cat > <path> <<'EOF' … EOF` 的內容（去掉 code block 的縮排）。回傳 {path: (章節檔名, 內容)}。"""
+def site_heredocs(pattern: str = "0[1-5]-*.mdx") -> dict:
+    """抓 mdx 裡 `cat > <path> <<'EOF' … EOF` 的內容（去掉 code block 的縮排）。回傳 {path: (章節檔名, 內容)}。"""
     found = {}
-    for mdx in sorted(SITE_DOCS.glob("0[1-5]-*.mdx")):
+    for mdx in sorted(SITE_DOCS.glob(pattern)):
         lines = mdx.read_text(encoding="utf-8").split("\n")
         i = 0
         while i < len(lines):
@@ -234,13 +235,24 @@ class SiteHeredocDriftTest(unittest.TestCase):
         found = site_heredocs()
         expected = {
             str(p.relative_to(chapter)): p
-            for chapter in sorted(SOLUTIONS.iterdir()) if chapter.is_dir()
+            for chapter in sorted(SOLUTIONS.glob("ch[1-5]-*")) if chapter.is_dir()
             for p in chapter.rglob("*") if p.is_file() and ".claude" in p.parts
         }
-        self.assertEqual(sorted(found), sorted(expected), "教材貼的檔案清單要與 solutions/*/.claude/** 完全一致")
+        self.assertEqual(sorted(found), sorted(expected), "教材貼的檔案清單要與 solutions/ch*/.claude/** 完全一致")
         for path, (chapter, body) in found.items():
             with self.subTest(path=path, chapter=chapter):
                 self.assertEqual(body.encode("utf-8"), expected[path].read_bytes(), "{} 與 solutions 的內容有漂移".format(path))
+
+    @unittest.skipUnless(SITE_DOCS.is_dir(), "找不到 ../site/src/content/docs（單獨 clone 練習 repo 時跳過）")
+    def test_11_capstone_heredocs_match_solutions_and_never_paste_the_tools(self):
+        found = site_heredocs("06-capstone.mdx")
+        self.assertIn("SPEC.md", found, "期末作業頁要把 SPEC.md 貼給讀者")
+        for path, (page, body) in found.items():
+            with self.subTest(path=path):
+                self.assertFalse(path.startswith(".claude/"), "{} 不該貼在期末作業頁：四份工具檔要讀者自己寫".format(path))
+                target = SOLUTIONS / "capstone" / path
+                self.assertTrue(target.is_file(), "solutions/capstone/{} 不存在".format(path))
+                self.assertEqual(body.encode("utf-8"), target.read_bytes(), "{} 與 solutions/capstone 的內容有漂移".format(path))
 
 
 if __name__ == "__main__":
