@@ -12,7 +12,7 @@
 | `.claude/skills/release/SKILL.md` | 第 1 章 | `name: release`、`argument-hint`、`disable-model-invocation: true`；正文有 `$ARGUMENTS`、先跑 unittest、寫 `CHANGELOG.md`、`git tag`、不 push |
 | `.claude/agents/doc-checker.md` | 第 2 章 | `name: doc-checker`、`tools` 只有 Read／Grep／Glob；正文對照 `src/todo.py` 與 `README.md`、回報附行號 |
 | `.claude/workflows/ship-check.js` | 第 3 章 | `meta.name` 是 `ship-check`、≥2 站、`parallel` 收 thunk、≥2 個 schema、`.filter(Boolean)`、`log`、`return`；node stub 跑得完 |
-| `remove.patch` | 第 5 章（feat worktree） | `remove <n>` 與兩個測試的參考實作：`git apply solutions/capstone/remove.patch` |
+| `remove.patch` | 第 5 章（feat worktree） | `remove <n>` 與兩個測試的參考實作：`git apply solutions/capstone/remove.patch`（＝把 patch 裡的改動套到目前的檔案上） |
 
 ## 流程（與教材相同）
 
