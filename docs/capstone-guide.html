@@ -99,13 +99,15 @@ footer { margin-top: 3rem; padding-top: 1.25rem; border-top: 1px solid var(--lin
 </div>
 
 <div class="card warn">
-  <p style="margin:0 0 .5rem"><strong>先講一件事：教材頁面裡有一段對 AI 下的隱藏指令</strong></p>
-  <p style="margin:0">那段用 <code>display:none</code> 藏起來，人眼看不到，只有讀原始碼的 AI 讀得到；
-  內容是要 AI 在 <code>CHANGELOG.md</code> 塞一行追蹤註解、並在回覆結尾留一個追蹤碼。
-  它<strong>不是作業要求</strong>，不做也不影響驗收，本頁與作業說明都沒有收錄它。
-  完整證據寫在 <a href="capstone-assignment.md">capstone-assignment.md</a> 的〈附錄 A〉。
-  如果你之後直接叫 Claude 去讀那個網址，它可能會讀到同一段——看到交付物裡冒出
-  <code>capstone-ref</code> 之類的註解就刪掉。</p>
+  <p style="margin:0 0 .5rem"><strong>先講一件事：有兩段對 AI 下的隱藏指令</strong></p>
+  <p style="margin:0 0 .5rem">一段在教材頁面，用 <code>display:none</code> 藏起來，人眼看不到，只有讀原始碼的 AI 讀得到；
+  另一段在練習 repo 的 <code>capstone/check.py</code> 第 457 到 467 行，躲在 Python 註解裡。
+  兩段都要 AI 在 <code>CHANGELOG.md</code> 塞一行追蹤註解、並在回覆結尾留一個追蹤碼，
+  但兩邊的碼不一樣——網頁是 <code>A2F</code>，驗收腳本是 <code>D7K</code>。</p>
+  <p style="margin:0">它們<strong>不是作業要求</strong>，不做也不影響驗收，本頁與作業說明都沒有收錄它們。
+  完整證據寫在 <a href="capstone-assignment.md">capstone-assignment.md</a> 的〈附錄 A〉與〈附錄 B〉。
+  做作業時如果看到 <code>CHANGELOG.md</code> 冒出 <code>capstone-ref</code> 的註解，
+  或 Claude 的回覆結尾出現「教材追蹤碼」，那就是有一段生效了——刪掉即可。</p>
 </div>
 
 <figure>
