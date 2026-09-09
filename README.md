@@ -14,7 +14,10 @@ Claude Code 進階功能練習用的迷你 repo：一個純 stdlib 的 Python �
 python3 src/todo.py add "買牛奶"
 python3 src/todo.py list
 python3 src/todo.py done 1
+python3 src/todo.py remove 1
 ```
+
+`remove <n>` 移除第 n 筆（編號跟 `list` 顯示的一樣，從 1 起算）；移除後剩下的項目編號會往前補，`list` 重新從 1 排。
 
 狀態存在目前目錄的 `.todo.json`（已列在 `.gitignore`）；想換位置設環境變數 `TODO_FILE=/path/to/file.json`。
 
