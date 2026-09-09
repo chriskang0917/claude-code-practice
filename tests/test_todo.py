@@ -1,4 +1,4 @@
-"""todo CLI 的 unittest：add / list / done / 空清單 / 錯誤編號。"""
+"""todo CLI 的 unittest：add / list / done / remove / 空清單 / 錯誤編號。"""
 import io
 import os
 import sys
@@ -61,6 +61,28 @@ class TodoCliTest(unittest.TestCase):
             self.assertEqual(code, 1, bad)
             self.assertIn("編號不存在", err)
         self.assertFalse(todo.load_items()[0]["done"])
+
+    def test_remove_deletes_item_and_renumbers(self):
+        self.run_cli("add", "第一件")
+        self.run_cli("add", "第二件")
+        self.run_cli("add", "第三件")
+        code, out, _ = self.run_cli("remove", "2")
+        self.assertEqual(code, 0)
+        self.assertIn("已移除 #2: 第二件", out)
+        self.assertEqual(
+            todo.load_items(),
+            [{"text": "第一件", "done": False}, {"text": "第三件", "done": False}],
+        )
+        _, listed, _ = self.run_cli("list")
+        self.assertEqual(listed.splitlines(), ["[ ] 1. 第一件", "[ ] 2. 第三件"])
+
+    def test_remove_bad_number(self):
+        self.run_cli("add", "只有一件")
+        for bad in ("0", "2", "abc"):
+            code, _, err = self.run_cli("remove", bad)
+            self.assertEqual(code, 1, bad)
+            self.assertIn("編號不存在：{}".format(bad), err)
+        self.assertEqual(todo.load_items(), [{"text": "只有一件", "done": False}])
 
     def test_usage_on_unknown_command(self):
         code, _, err = self.run_cli("nope")
