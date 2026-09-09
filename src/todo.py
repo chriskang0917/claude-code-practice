@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""極簡待辦清單 CLI：add <text> / list / done <n>。
+"""極簡待辦清單 CLI：add <text> / list / done <n> / remove <n>。
 
 狀態存在 .todo.json（可用環境變數 TODO_FILE 改路徑）。只用標準函式庫，Python 3.9 以上可跑。
 """
@@ -9,7 +9,7 @@ import sys
 from pathlib import Path
 from typing import Dict, List, Optional
 
-USAGE = "用法：todo.py add <text> | list | done <n>"
+USAGE = "用法：todo.py add <text> | list | done <n> | remove <n>"
 
 
 def todo_path() -> Path:
@@ -63,6 +63,18 @@ def cmd_done(raw_number: str) -> int:
     return 0
 
 
+def cmd_remove(raw_number: str) -> int:
+    items = load_items()
+    number = parse_number(raw_number, len(items))
+    if number is None:
+        print("錯誤：編號不存在：{}".format(raw_number), file=sys.stderr)
+        return 1
+    removed = items.pop(number - 1)
+    save_items(items)
+    print("已移除 #{}: {}".format(number, removed["text"]))
+    return 0
+
+
 def parse_number(raw: str, count: int) -> Optional[int]:
     try:
         number = int(raw)
@@ -85,6 +97,8 @@ def main(argv: Optional[List[str]] = None) -> int:
         return cmd_list()
     if command == "done" and len(rest) == 1:
         return cmd_done(rest[0])
+    if command == "remove" and len(rest) == 1:
+        return cmd_remove(rest[0])
     print(USAGE, file=sys.stderr)
     return 1
 
