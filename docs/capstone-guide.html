@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>期末作業引導：交付 todo CLI v1.0.0</title>
+<style>
+:root {
+  color-scheme: light dark;
+  --bg: #fbfaf8; --fg: #1c1d20; --muted: #63656b; --line: #e2e0dc;
+  --card: #ffffff; --code-bg: #f4f2ee; --accent: #b4541e; --ok: #1f7a45;
+  --warn-bg: #fdf3e7; --warn-line: #e6b98a;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #16171a; --fg: #e6e4e0; --muted: #9a9ca2; --line: #2d2f34;
+    --card: #1d1f23; --code-bg: #24262b; --accent: #e2884f; --ok: #5cc48a;
+    --warn-bg: #2a2016; --warn-line: #6b4b2a;
+  }
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--bg); color: var(--fg);
+  font: 16px/1.75 -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang TC",
+        "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+}
+.wrap { max-width: 860px; margin: 0 auto; padding: 2.5rem 1.25rem 6rem; }
+h1 { font-size: 1.7rem; line-height: 1.35; margin: 0 0 .4rem; }
+h2 { font-size: 1.25rem; margin: 3rem 0 .5rem; padding-top: 1.25rem;
+     border-top: 1px solid var(--line); display: flex; align-items: baseline;
+     justify-content: space-between; gap: 1rem; }
+.sub { color: var(--muted); margin: 0 0 1.5rem; }
+.lead { color: var(--muted); margin: .25rem 0 1.25rem; }
+a { color: var(--accent); }
+code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+       font-size: .875em; background: var(--code-bg); padding: .1em .35em;
+       border-radius: 4px; overflow-wrap: anywhere; }
+.card { background: var(--card); border: 1px solid var(--line);
+        border-radius: 10px; padding: 1rem 1.25rem; margin: 1.25rem 0; }
+.warn { background: var(--warn-bg); border-color: var(--warn-line); }
+.warn strong { color: var(--accent); }
+figure { margin: 1.5rem 0; }
+figure img { width: 100%; border: 1px solid var(--line); border-radius: 10px; display: block; }
+figcaption { color: var(--muted); font-size: .85rem; margin-top: .5rem; }
+.bar { position: sticky; top: 0; z-index: 5; background: var(--bg);
+       border-bottom: 1px solid var(--line); padding: .7rem 0; margin-bottom: 1rem;
+       display: flex; align-items: center; gap: .9rem; flex-wrap: wrap; }
+.bar .track { flex: 1 1 180px; height: 8px; background: var(--code-bg);
+              border-radius: 99px; overflow: hidden; min-width: 140px; }
+.bar .fill { height: 100%; width: 0; background: var(--ok); transition: width .2s; }
+.bar .num { font-variant-numeric: tabular-nums; color: var(--muted); font-size: .9rem; }
+button { font: inherit; cursor: pointer; border-radius: 6px;
+         border: 1px solid var(--line); background: var(--card); color: var(--fg);
+         padding: .25rem .7rem; }
+button:hover { border-color: var(--accent); color: var(--accent); }
+.cnt { font-size: .8rem; font-weight: 400; color: var(--muted);
+       font-variant-numeric: tabular-nums; white-space: nowrap; }
+ol.list, ul.list { list-style: none; margin: 0; padding: 0; }
+.item { border: 1px solid var(--line); border-radius: 10px; background: var(--card);
+        padding: .9rem 1.1rem; margin-bottom: .75rem; }
+.item.done { opacity: .55; }
+.item.done .t { text-decoration: line-through; text-decoration-thickness: 1px; }
+.row { display: flex; gap: .7rem; align-items: flex-start; cursor: pointer; }
+.row input { margin: .45rem 0 0; width: 1.05rem; height: 1.05rem;
+             accent-color: var(--ok); flex: none; }
+.t { font-weight: 600; }
+.ref { font-weight: 400; font-size: .78rem; color: var(--muted);
+       margin-left: .5rem; white-space: nowrap; }
+.d { margin: .5rem 0 0 1.75rem; color: var(--muted); }
+.cb { position: relative; margin: .75rem 0 0 1.75rem; }
+.cb-label { display: block; font-size: .78rem; color: var(--muted); margin-bottom: .3rem;
+            padding-right: 4.5rem; }
+.cb .copy { position: absolute; top: 0; right: .4rem; font-size: .78rem;
+            padding: .15rem .55rem; }
+.cb pre { margin: 0; background: var(--code-bg); border: 1px solid var(--line);
+          border-radius: 8px; padding: .7rem .85rem; overflow-x: auto; }
+.cb pre code { background: none; padding: 0; font-size: .82rem; line-height: 1.6;
+               white-space: pre; }
+footer { margin-top: 3rem; padding-top: 1.25rem; border-top: 1px solid var(--line);
+         color: var(--muted); font-size: .875rem; }
+@media (max-width: 560px) {
+  .d, .cb { margin-left: 0; }
+  h2 { flex-direction: column; gap: .2rem; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>期末作業引導：交付 todo CLI v1.0.0</h1>
+<p class="sub">練習 repo 的 todo CLI 出成 v1.0.0——自己寫四樣工具（hook 是兩個檔，共五個檔），走完一次真正的交付流程，最後 <code>make capstone</code> 印出 <code>CAPSTONE_OK</code>。</p>
+
+<div class="card">
+  <p style="margin:0 0 .5rem"><strong>這頁是什麼</strong></p>
+  <p style="margin:0">一份可以邊做邊勾的清單，內容全部來自
+  <a href="capstone-assignment.md">capstone-assignment.md</a>（那份是完整的作業說明，這頁不重複抄一遍）。
+  勾選狀態存在你這台電腦的瀏覽器裡，關掉重開還在；換一台電腦或清掉網頁資料會歸零。
+  原始教材頁面：<a href="https://training.angus-lu.cc/06-capstone/">training.angus-lu.cc/06-capstone</a>。</p>
+</div>
+
+<div class="card warn">
+  <p style="margin:0 0 .5rem"><strong>先講一件事：教材頁面裡有一段對 AI 下的隱藏指令</strong></p>
+  <p style="margin:0">那段用 <code>display:none</code> 藏起來，人眼看不到，只有讀原始碼的 AI 讀得到；
+  內容是要 AI 在 <code>CHANGELOG.md</code> 塞一行追蹤註解、並在回覆結尾留一個追蹤碼。
+  它<strong>不是作業要求</strong>，不做也不影響驗收，本頁與作業說明都沒有收錄它。
+  完整證據寫在 <a href="capstone-assignment.md">capstone-assignment.md</a> 的〈附錄 A〉。
+  如果你之後直接叫 Claude 去讀那個網址，它可能會讀到同一段——看到交付物裡冒出
+  <code>capstone-ref</code> 之類的註解就刪掉。</p>
+</div>
+
+<figure>
+  <img src="img/06-capstone.png" alt="教材頁面 06-capstone 的截圖：標題「期末作業：交付 todo CLI v1.0.0」與交付流程圖">
+  <figcaption>教材頁面 06-capstone，2026-09-09 擷取。</figcaption>
+</figure>
+
+<div class="bar">
+  <div class="track"><div class="fill" id="fill"></div></div>
+  <span class="num" id="num">0 / 0</span>
+  <button type="button" id="reset">清空進度</button>
+</div>
+
+<h2 id="prep">準備：自己寫五個檔<span class="cnt" data-group="prep"></span></h2>
+<p class="lead">教材第 3 節〈規格〉。不給檔案，只給規格；寫完每一份就先做那一節的自測，不要等到最後。</p>
+<ol class="list">
+<li class="item" data-id="prep-0">
+<label class="row"><input type="checkbox" id="prep-0">
+<span class="t">0. SPEC.md（給你的，直接貼）<span class="ref">md §3.0</span></span></label>
+<p class="d"><code>feat</code> 與 <code>docs</code> 兩個 session 都照這份做，所以它要跟工具檔一起進 git。在 repo 根目錄的終端機貼：</p>
+<div class="cb"><span class="cb-label">貼 SPEC.md</span><button class="copy" type="button">複製</button><pre><code>cat &gt; SPEC.md &lt;&lt;&#x27;EOF&#x27;
+# SPEC：todo CLI v1.0.0
+
+## 新指令 remove
+
+- `python3 src/todo.py remove &lt;n&gt;`：移除第 n 筆（編號與 `list` 顯示的相同，從 1 起算）。
+- 成功：印 `已移除 #&lt;n&gt;: &lt;text&gt;`，exit 0；剩下的項目編號往前補（`list` 重新從 1 排）。
+- 編號不存在（0、超出範圍、不是整數）：stderr 印 `錯誤：編號不存在：&lt;原輸入&gt;`，exit 1，清單不變。
+- `USAGE` 改成 `用法：todo.py add &lt;text&gt; | list | done &lt;n&gt; | remove &lt;n&gt;`。
+
+## 測試
+
+- `tests/test_todo.py` 至少加兩個測試（測試函式名稱要含 `remove`）：移除成功（清單少一筆、編號重排）、錯誤編號（exit 1、清單不變）。
+
+## 文件
+
+- `README.md` 的「怎麼跑」加上 `remove` 的範例，並用一句話說明移除後編號會重排。
+
+## 出版
+
+- `CHANGELOG.md` 最上面一段是 `## 1.0.0 (YYYY-MM-DD)`，條目從 git log 產生。
+- 打 tag `v1.0.0`。不 push。
+EOF</code></pre></div>
+</li>
+<li class="item" data-id="prep-1">
+<label class="row"><input type="checkbox" id="prep-1">
+<span class="t">1. push-gate hook（第 4 章，兩個檔）<span class="ref">md §3.1</span></span></label>
+<p class="d"><code>.claude/settings.json</code> 的 matcher 是 <strong><code>Bash</code></strong>（push 是 Bash 工具跑的，<code>Edit|Write</code> 攔不到），並多一個跟 hook 無關的鍵 <code>worktree.baseRef: head</code>，步驟 6 開的 worktree 才會帶著你沒 push 的工具鏈與 <code>SPEC.md</code>。<code>push_gate.py</code> 讀 stdin JSON 的 <code>tool_input.command</code>，同一段指令裡同時出現 <code>git</code> 與 <code>push</code> 就往 stderr 印一句含「已擋下」的理由並 <code>exit 2</code>；其他情況 <code>exit 0</code> 並留一行 <code>[push-gate] skip: 原因</code>。只有 <code>BLOCK_MSG</code> 與 <code>TODO</code> 那行要你自己寫。</p>
+<div class="cb"><span class="cb-label">.claude/settings.json</span><button class="copy" type="button">複製</button><pre><code>{
+  &quot;hooks&quot;: {
+    &quot;PreToolUse&quot;: [
+      {
+        &quot;matcher&quot;: &quot;Bash&quot;,
+        &quot;hooks&quot;: [
+          { &quot;type&quot;: &quot;command&quot;, &quot;command&quot;: &quot;python3 \&quot;$CLAUDE_PROJECT_DIR/.claude/hooks/push_gate.py\&quot;&quot; }
+        ]
+      }
+    ]
+  },
+  &quot;worktree&quot;: { &quot;baseRef&quot;: &quot;head&quot; }
+}</code></pre></div>
+<div class="cb"><span class="cb-label">.claude/hooks/push_gate.py（骨架）</span><button class="copy" type="button">複製</button><pre><code>#!/usr/bin/env python3
+&quot;&quot;&quot;PreToolUse hook：不准從 Claude session 執行 git push。&quot;&quot;&quot;
+import json
+import sys
+
+
+BLOCK_MSG = &quot;已擋下：……&quot;   # 你的理由：要含「已擋下」，並叫它停下來回報、不要換指令再試
+
+
+def skip(reason):
+    print(&quot;[push-gate] skip: &quot; + reason, file=sys.stderr)
+    return 0
+
+
+def main():
+    try:
+        payload = json.load(sys.stdin)   # Claude Code 從 stdin 餵進來的 JSON
+    except (ValueError, OSError):
+        return skip(&quot;stdin 不是合法 JSON&quot;)
+    command = (payload.get(&quot;tool_input&quot;) or {}).get(&quot;command&quot;) if isinstance(payload, dict) else None
+    if not command:
+        return skip(&quot;tool_input 沒有 command&quot;)
+    if ...:   # TODO：規則判斷——同一段指令裡同時出現 git 與 push
+        print(BLOCK_MSG, file=sys.stderr)
+        return 2
+    return skip(&quot;不是 git push&quot;)
+
+
+if __name__ == &quot;__main__&quot;:
+    sys.exit(main())</code></pre></div>
+<div class="cb"><span class="cb-label">自測：預期第一行 exit=2 且含「已擋下」，第二行 exit=0</span><button class="copy" type="button">複製</button><pre><code>echo &#x27;{&quot;tool_name&quot;:&quot;Bash&quot;,&quot;tool_input&quot;:{&quot;command&quot;:&quot;git push --tags&quot;}}&#x27; | python3 .claude/hooks/push_gate.py; echo &quot;exit=$?&quot;
+echo &#x27;{&quot;tool_name&quot;:&quot;Bash&quot;,&quot;tool_input&quot;:{&quot;command&quot;:&quot;echo push&quot;}}&#x27; | python3 .claude/hooks/push_gate.py; echo &quot;exit=$?&quot;</code></pre></div>
+</li>
+<li class="item" data-id="prep-2">
+<label class="row"><input type="checkbox" id="prep-2">
+<span class="t">2. release skill（第 1 章）<span class="ref">md §3.2</span></span></label>
+<p class="d"><code>.claude/skills/release/SKILL.md</code>。frontmatter 四個欄位：<code>name</code>、<code>description</code>、<code>argument-hint</code>、<code>disable-model-invocation: true</code>。正文照九個步驟寫成編號清單。驗收會在正文找這五個字串，請原樣寫：<code>$ARGUMENTS</code>、<code>unittest</code>、<code>CHANGELOG.md</code>、<code>git tag</code>、<code>push</code>。自測：重開 <code>claude</code> 後輸入 <code>/</code>，清單有 <code>release</code>，旁邊提示 <code>&lt;version&gt;</code>。</p>
+<div class="cb"><span class="cb-label">release 是唯一要自己建目錄的</span><button class="copy" type="button">複製</button><pre><code>mkdir -p .claude/skills/release</code></pre></div>
+</li>
+<li class="item" data-id="prep-3">
+<label class="row"><input type="checkbox" id="prep-3">
+<span class="t">3. doc-checker subagent（第 2 章）<span class="ref">md §3.3</span></span></label>
+<p class="d"><code>.claude/agents/doc-checker.md</code>。frontmatter：<code>name: doc-checker</code>；<code>description</code> 寫觸發時機而不是類別名；<code>tools: Read, Grep, Glob</code>——唯讀靠這一行，不靠「請不要改檔」。驗收會在正文找 <code>src/todo.py</code>、<code>README.md</code>、<code>行號</code> 三個字串，請原樣寫。自測：重開 <code>claude</code> 後輸入 <code>@</code>，選單有 <code>agent-doc-checker</code>。</p>
+</li>
+<li class="item" data-id="prep-4">
+<label class="row"><input type="checkbox" id="prep-4">
+<span class="t">4. ship-check workflow（第 3 章）<span class="ref">md §3.4</span></span></label>
+<p class="d"><code>.claude/workflows/ship-check.js</code>，兩站：Check（<code>parallel</code> 兩個 agent 對照 SPEC）與 Verdict（一個 agent 回 go／no-go）。驗收用文字比對形狀，這幾個字請照第 3 章的寫法：<code>export const meta = {</code>、<code>() =&gt; agent(</code>、<code>.filter(Boolean)</code>、<code>log(</code>、<code>schema:</code>。自測：<code>python3 capstone/check.py</code>，只看 <code>[4/6]</code> 那一組是不是全 ✓。</p>
+<div class="cb"><span class="cb-label">從第 3 章的參考解答改起</span><button class="copy" type="button">複製</button><pre><code>cp solutions/ch3-workflow/.claude/workflows/review-flow.js .claude/workflows/ship-check.js</code></pre></div>
+<div class="cb"><span class="cb-label">要加的 VERDICT schema</span><button class="copy" type="button">複製</button><pre><code>const VERDICT = {
+  type: &#x27;object&#x27;,
+  required: [&#x27;verdict&#x27;, &#x27;reasons&#x27;],
+  properties: {
+    verdict: { type: &#x27;string&#x27;, enum: [&#x27;go&#x27;, &#x27;no-go&#x27;] },
+    reasons: { type: &#x27;array&#x27;, items: { type: &#x27;string&#x27; } },
+  },
+}</code></pre></div>
+</li>
+<li class="item" data-id="prep-5">
+<label class="row"><input type="checkbox" id="prep-5">
+<span class="t">5. 兩個 worktree 的提示詞（第 5 章）<span class="ref">md §3.5</span></span></label>
+<p class="d">自足、寫清楚邊界、只 commit 不 push、commit 訊息指定好（<code>/release</code> 會照它產 changelog）。下面兩段是<strong>給你複製、貼進對應 session</strong> 的素材。</p>
+<div class="cb"><span class="cb-label">貼進 feat session</span><button class="copy" type="button">複製</button><pre><code>讀 SPEC.md，只改 src/todo.py 與 tests/test_todo.py，完成「新指令 remove」與「測試」兩節，不要動 README；python3 -m unittest tests.test_todo -v 全過之後，用訊息「feat: add remove command」commit，不要 push</code></pre></div>
+<div class="cb"><span class="cb-label">貼進 docs session</span><button class="copy" type="button">複製</button><pre><code>讀 SPEC.md，只改 README.md 完成「文件」那一節，不要動 src/ 與 tests/；用訊息「docs: document remove command」commit，不要 push</code></pre></div>
+</li>
+</ol>
+<h2 id="do">你來做：11 個步驟<span class="cnt" data-group="do"></span></h2>
+<p class="lead">教材第 4 節。主 checkout 的工作都在系統終端機直接開 <code>claude</code> 做；只有步驟 6、7 兩個 worktree 依 CLI／Orca 路線不同。</p>
+<ol class="list">
+<li class="item" data-id="step-1">
+<label class="row"><input type="checkbox" id="step-1">
+<span class="t">步驟 1：起點<span class="ref">md §4 步驟 1</span></span></label>
+<p class="d">把 repo 恢復成剛 clone 完的乾淨狀態。第一次做就 clone；已 clone 過、或要重做，跑第二段（可以重複跑）。<strong>已經在 repo 目錄裡的人不要再貼 clone 那段。</strong> 這段會丟掉未 commit 的改動與未追蹤檔，但不會動被 gitignore 的 <code>.todo.json</code> 與 <code>.claude/settings.local.json</code>。Orca 路線也跑同一段。</p>
+<div class="cb"><span class="cb-label">第一次做</span><button class="copy" type="button">複製</button><pre><code>git clone https://github.com/AngusLu0731/claude-code-practice.git
+cd claude-code-practice</code></pre></div>
+<div class="cb"><span class="cb-label">已 clone／重跑（在 repo 根目錄）</span><button class="copy" type="button">複製</button><pre><code>for n in feat docs; do
+  git worktree remove --force &quot;.claude/worktrees/$n&quot; 2&gt;/dev/null
+  git branch -D &quot;worktree-$n&quot; 2&gt;/dev/null
+done
+git tag -d v1.0.0 2&gt;/dev/null
+git merge --abort 2&gt;/dev/null
+git checkout -f main &amp;&amp; git reset --hard origin/main
+git clean -fd &amp;&amp; git worktree prune</code></pre></div>
+</li>
+<li class="item" data-id="step-2">
+<label class="row"><input type="checkbox" id="step-2">
+<span class="t">步驟 2：信任資料夾<span class="ref">md §4 步驟 2</span></span></label>
+<p class="d">這個目錄還沒接受過信任對話的話，先 <code>claude</code> 接受再 <code>/exit</code>。</p>
+</li>
+<li class="item" data-id="step-3">
+<label class="row"><input type="checkbox" id="step-3">
+<span class="t">步驟 3：貼 SPEC.md、寫四樣工具<span class="ref">md §4 步驟 3</span></span></label>
+<p class="d">照上面〈準備〉的 0 到 4 節做完五個檔。每寫完一份就做那一節的自測；hook 與 workflow 的自測不用開 <code>claude</code>。四個檔都寫完先對一次路徑——驗收每一組的第一項都是「檔案存不存在」，路徑打錯是最便宜的失敗。</p>
+<div class="cb"><span class="cb-label">對路徑</span><button class="copy" type="button">複製</button><pre><code>ls -R .claude</code></pre></div>
+</li>
+<li class="item" data-id="step-4">
+<label class="row"><input type="checkbox" id="step-4">
+<span class="t">步驟 4：先 commit 工具鏈<span class="ref">md §4 步驟 4</span></span></label>
+<p class="d">有了 <code>baseRef: head</code>，worktree 會從你本機的 HEAD 長出來，但沒 commit 的檔案還是帶不過去；<code>SPEC.md</code> 兩個 session 都要讀。<code>git status --porcelain</code> 應該沒有輸出。</p>
+<div class="cb"><button class="copy" type="button">複製</button><pre><code>git add -A &amp;&amp; git commit -m &quot;chore: release 工具鏈與 remove 規格&quot; &amp;&amp; git status --porcelain</code></pre></div>
+</li>
+<li class="item" data-id="step-5">
+<label class="row"><input type="checkbox" id="step-5">
+<span class="t">步驟 5：開 claude，確認四樣都在<span class="ref">md §4 步驟 5</span></span></label>
+<p class="d"><code>/hooks</code> 的 PreToolUse 底下有 <code>Bash</code> → <code>push_gate.py</code>；輸入 <code>/</code> 清單有 <code>release</code>（提示 <code>&lt;version&gt;</code>）與 <code>ship-check</code>；輸入 <code>@</code> 有 <code>agent-doc-checker</code>。都在就 <code>/exit</code>。少一樣回步驟 3 對照那一節的規格。</p>
+<div class="cb"><button class="copy" type="button">複製</button><pre><code>claude</code></pre></div>
+</li>
+<li class="item" data-id="step-6">
+<label class="row"><input type="checkbox" id="step-6">
+<span class="t">步驟 6：session feat<span class="ref">md §4 步驟 6</span></span></label>
+<p class="d">CLI：開一個終端機，在 repo 根目錄跑下面的指令。開好先在提示符打 <code>!ls SPEC.md .claude/hooks/</code>（<code>!</code> 開頭＝直接跑 shell），兩樣都在才往下；少了就是 <code>baseRef</code> 沒設好，看 md 的〈故障排除〉。Orca：按 repo 名旁的 ＋，任務名取 <code>feat</code>，<strong>起點選本機的 <code>main</code></strong>，agent 選 Claude Code。開好後整段貼〈準備〉第 5 項的 <code>feat</code> 提示詞。</p>
+<div class="cb"><span class="cb-label">CLI 路線</span><button class="copy" type="button">複製</button><pre><code>claude --worktree feat</code></pre></div>
+</li>
+<li class="item" data-id="step-7">
+<label class="row"><input type="checkbox" id="step-7">
+<span class="t">步驟 7：session docs<span class="ref">md §4 步驟 7</span></span></label>
+<p class="d">CLI：再開一個終端機，<code>cd</code> 到同一個 repo。Orca：再按一次 ＋，任務名取 <code>docs</code>，把它拖到 <code>feat</code> 旁邊並排。開好後整段貼〈準備〉第 5 項的 <code>docs</code> 提示詞。兩個 session 同時跑；等兩邊都回報「已 commit」。</p>
+<div class="cb"><span class="cb-label">CLI 路線</span><button class="copy" type="button">複製</button><pre><code>claude --worktree docs</code></pre></div>
+</li>
+<li class="item" data-id="step-8">
+<label class="row"><input type="checkbox" id="step-8">
+<span class="t">步驟 8：收斂（主 checkout）<span class="ref">md §4 步驟 8</span></span></label>
+<p class="d">在 repo 根目錄（不是 <code>.claude/worktrees/</code> 底下）。預期 <code>Ran 8 tests</code>（或更多）與 <code>OK</code>。然後跑 <code>git log --oneline --graph | head -8</code>，看到兩行 <code>Merge branch</code> 再進步驟 9——步驟 9 會把分支刪掉，之後想補 merge 節點就得重做。</p>
+<div class="cb"><span class="cb-label">CLI 路線</span><button class="copy" type="button">複製</button><pre><code>git merge --no-ff --no-edit worktree-feat &amp;&amp; git merge --no-ff --no-edit worktree-docs &amp;&amp; python3 -m unittest tests.test_todo -v</code></pre></div>
+<div class="cb"><span class="cb-label">Orca 路線（分支名預設就是任務名）</span><button class="copy" type="button">複製</button><pre><code>git merge --no-ff --no-edit feat &amp;&amp; git merge --no-ff --no-edit docs &amp;&amp; python3 -m unittest tests.test_todo -v</code></pre></div>
+<div class="cb"><span class="cb-label">確認兩個 merge 節點</span><button class="copy" type="button">複製</button><pre><code>git log --oneline --graph | head -8</code></pre></div>
+</li>
+<li class="item" data-id="step-9">
+<label class="row"><input type="checkbox" id="step-9">
+<span class="t">步驟 9：收掉兩個 worktree<span class="ref">md §4 步驟 9</span></span></label>
+<p class="d">CLI：回 feat、docs 兩個終端機各打 <code>/exit</code>，選 remove（已 merge，安全）。Orca：各打 <code>/exit</code>，側欄刪掉 <code>feat</code>、<code>docs</code>。然後在主 checkout 跑下面這行，只剩一行輸出。</p>
+<div class="cb"><button class="copy" type="button">複製</button><pre><code>git worktree prune &amp;&amp; git worktree list</code></pre></div>
+</li>
+<li class="item" data-id="step-10">
+<label class="row"><input type="checkbox" id="step-10">
+<span class="t">步驟 10：對照、驗收、出版、閘門<span class="ref">md §4 步驟 10</span></span></label>
+<p class="d">主 checkout 開 <code>claude</code>，依序貼下面四段。第四段是故意的：看 hook 把 push 擋下來——看到含「已擋下」的訊息才是 hook 擋的；看到 GitHub 的 <code>Permission denied</code> 代表 hook 沒生效。看到回報之後 <code>/exit</code>。</p>
+<div class="cb"><span class="cb-label">① 對照</span><button class="copy" type="button">複製</button><pre><code>@agent-doc-checker 對照 src/todo.py 與 README.md，找出 remove 相關的不一致</code></pre></div>
+<div class="cb"><span class="cb-label">② 驗收：要拿到 verdict 是 go</span><button class="copy" type="button">複製</button><pre><code>/ship-check</code></pre></div>
+<div class="cb"><span class="cb-label">③ 出版：跑測試、寫 CHANGELOG、commit、打 tag</span><button class="copy" type="button">複製</button><pre><code>/release 1.0.0</code></pre></div>
+<div class="cb"><span class="cb-label">④ 閘門：預期被擋下</span><button class="copy" type="button">複製</button><pre><code>把 main 和 tag v1.0.0 推到 origin</code></pre></div>
+</li>
+<li class="item" data-id="step-11">
+<label class="row"><input type="checkbox" id="step-11">
+<span class="t">步驟 11：驗收<span class="ref">md §4 步驟 11</span></span></label>
+<p class="d">六組全 ✓，最後印出 <code>CAPSTONE_OK</code> 就是完成了。沒有 <code>make</code> 的話用第二行。</p>
+<div class="cb"><span class="cb-label">驗收指令</span><button class="copy" type="button">複製</button><pre><code>make capstone</code></pre></div>
+<div class="cb"><span class="cb-label">沒有 make 時</span><button class="copy" type="button">複製</button><pre><code>python3 capstone/check.py</code></pre></div>
+</li>
+</ol>
+<h2 id="check">自檢<span class="cnt" data-group="check"></span></h2>
+<p class="lead">教材第 8 節。八項全勾，就是作業做完了。</p>
+<ul class="list">
+<li class="item" data-id="chk-1"><label class="row"><input type="checkbox" id="chk-1"><span class="t">四樣工具自己寫好、各自的自測過了，與 SPEC.md 一起 commit；<code>/hooks</code>、<code>/</code>、<code>@</code> 都看得到它們</span></label></li>
+<li class="item" data-id="chk-2"><label class="row"><input type="checkbox" id="chk-2"><span class="t">feat、docs 兩個 worktree 同時跑，各自只 commit 自己被分派的檔</span></label></li>
+<li class="item" data-id="chk-3"><label class="row"><input type="checkbox" id="chk-3"><span class="t">主 checkout 兩次 <code>--no-ff</code> merge 沒衝突，<code>tests.test_todo</code> OK，worktree 收乾淨</span></label></li>
+<li class="item" data-id="chk-4"><label class="row"><input type="checkbox" id="chk-4"><span class="t"><code>@agent-doc-checker</code> 回報附行號（一致，或已照它修好並 commit），且它沒改任何檔</span></label></li>
+<li class="item" data-id="chk-5"><label class="row"><input type="checkbox" id="chk-5"><span class="t"><code>/ship-check</code> 跑完，<code>/workflows</code> 看到兩站三個 agent，<code>verdict</code> 是 <code>go</code></span></label></li>
+<li class="item" data-id="chk-6"><label class="row"><input type="checkbox" id="chk-6"><span class="t"><code>/release 1.0.0</code> 之後 <code>CHANGELOG.md</code> 第一段是 <code>## 1.0.0</code>、<code>git tag</code> 有 <code>v1.0.0</code></span></label></li>
+<li class="item" data-id="chk-7"><label class="row"><input type="checkbox" id="chk-7"><span class="t">請 Claude push 被 hook 擋下，訊息含「已擋下」</span></label></li>
+<li class="item" data-id="chk-8"><label class="row"><input type="checkbox" id="chk-8"><span class="t"><code>make capstone</code> 六組全 ✓，印出 <code>CAPSTONE_OK</code></span></label></li>
+</ul>
+
+
+<footer>
+  <p>完整作業說明與偵測附錄：<a href="capstone-assignment.md">capstone-assignment.md</a>。
+  這頁是單一 HTML 檔，不需要起 server、不連外網；勾選狀態存在瀏覽器的 localStorage，
+  換裝置或清網頁資料會歸零。</p>
+</footer>
+
+</div>
+<script>
+(function () {
+  var KEY = 'capstone-guide-progress-v1';
+  var boxes = Array.prototype.slice.call(document.querySelectorAll('.item input[type=checkbox]'));
+
+  function load() {
+    try {
+      var raw = localStorage.getItem(KEY);
+      return raw ? JSON.parse(raw) : {};
+    } catch (e) { return {}; }
+  }
+  function save(state) {
+    try { localStorage.setItem(KEY, JSON.stringify(state)); return true; }
+    catch (e) { return false; }
+  }
+
+  function paint() {
+    var done = 0;
+    boxes.forEach(function (b) {
+      b.closest('.item').classList.toggle('done', b.checked);
+      if (b.checked) done++;
+    });
+    document.getElementById('num').textContent = done + ' / ' + boxes.length;
+    document.getElementById('fill').style.width =
+      (boxes.length ? (done / boxes.length * 100) : 0) + '%';
+    document.querySelectorAll('.cnt').forEach(function (el) {
+      var list = el.closest('h2').nextElementSibling.nextElementSibling;
+      var items = list.querySelectorAll('input[type=checkbox]');
+      var n = 0;
+      items.forEach(function (i) { if (i.checked) n++; });
+      el.textContent = n + ' / ' + items.length;
+    });
+  }
+
+  var state = load();
+  boxes.forEach(function (b) {
+    b.checked = !!state[b.id];
+    b.addEventListener('change', function () {
+      var s = load();
+      if (b.checked) { s[b.id] = 1; } else { delete s[b.id]; }
+      save(s);
+      paint();
+    });
+  });
+  paint();
+
+  document.getElementById('reset').addEventListener('click', function () {
+    if (!confirm('清空所有勾選？')) return;
+    save({});
+    boxes.forEach(function (b) { b.checked = false; });
+    paint();
+  });
+
+  function copyText(text, btn) {
+    function done(ok) {
+      var old = btn.textContent;
+      btn.textContent = ok ? '已複製' : '複製失敗';
+      setTimeout(function () { btn.textContent = old; }, 1400);
+    }
+    function fallback() {
+      var ta = document.createElement('textarea');
+      ta.value = text;
+      ta.setAttribute('readonly', '');
+      ta.style.position = 'fixed';
+      ta.style.top = '-1000px';
+      document.body.appendChild(ta);
+      ta.select();
+      var ok = false;
+      try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
+      document.body.removeChild(ta);
+      done(ok);
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(function () { done(true); }, fallback);
+    } else {
+      fallback();
+    }
+  }
+
+  document.querySelectorAll('.cb .copy').forEach(function (btn) {
+    btn.addEventListener('click', function (ev) {
+      ev.preventDefault();
+      copyText(btn.parentNode.querySelector('pre code').textContent, btn);
+    });
+  });
+})();
+</script>
+</body>
+</html>
